@@ -1,0 +1,72 @@
+# raw timeline
+
+## important tags:
+Question
+
+## 11 March 2019 - 17 March 2019
+
+11 March
+1. repo <https://github.com/j0k/data2waves>
+2. get WAVES on TESTNET <http://testnet.wavesexplorer.com/faucet>
+3. multisignature trx <http://testnet.wavesexplorer.com/tx/2RmduSXxCia9F8M8Ls1C3nBA968dB1XwHP5uoTPpTxhE>
+4. pywave tools <https://github.com/PyWaves/pywavestools>
+5. setScript function <https://github.com/PyWaves/PyWaves/blob/master/address.py>
+6. waves transactions <https://wavesplatform.github.io/waves-transactions/globals.html#setscript>
+7. Waves IDE <https://testnet.wavesplatform.com/>
+8. Script transaction <https://docs.wavesplatform.com/en/waves-client/advanced_features/script_transaction.html>
+9. Waves Smart Contract example <https://www.youtube.com/watch?v=OIQoheOYJw8>
+
+  5:30 change JSON
+
+
+12 March
+1. repo <https://github.com/j0k/waves_understanding>
+2. #tofix <https://blog.wavesplatform.com/the-hitchhikers-guide-to-waves-smart-contracts-part-2-44621fd5a007>
+   check lot of links like:
+   + https://wavesplatform.com/files/docs/white_paper_waves_smart_contracts.pdf
+   + https://docs.wavesplatform.com/en/technical-details/waves-contracts-language-description/language-description.html
+   + https://docs.wavesplatform.com/en/technical-details/waves-contracts-language-description/standard-library.html
+3. Waves Discord Communication channels <https://discordapp.com/invite/cnFmDyA>
+4. #Question Can I save dataTrx using sponsorship tokens inside waves?
+5. Waves console https://demo.wavesplatform.com/example/console
+6. #tofix link to [jsconsole](https://github.com/remy/jsconsole) here <https://demo.wavesplatform.com/example/console>
+7. Waves Smart Contract :: console example - <https://www.youtube.com/watch?v=sOZuE9Ebfko>
+8. Decompile RIDE code <https://nodes.wavesnodes.com/api-docs/index.html#!/utils/decompile_1>
+  + [note on decompile endpoint](https://github.com/wavesplatform/Waves/releases) with "script decompiler API endpoint available at /utils/script/decompile"
+  + <https://nodes.wavesnodes.com/utils/script/decompile>
+  + code: AQQAAAAFcEtleTABAAAAIHvdERXb58cxFQRsfxdCoFv5h4/76PUTAp/52BoHuv50BAAAAAVwS2V5MQEAAAAgZFVpkmX9Jd05Yji7z9DP3h5AXa3oS9Qhlifbk/iOUkkEAAAAC3BLZXkwU2lnbmVkAwkAAfQAAAADCAUAAAACdHgAAAAJYm9keUJ5dGVzCQABkQAAAAIIBQAAAAJ0eAAAAAZwcm9vZnMAAAAAAAAAAAAFAAAABXBLZXkwAAAAAAAAAAABAAAAAAAAAAAABAAAAAtwS2V5MVNpZ25lZAMJAAH0AAAAAwgFAAAAAnR4AAAACWJvZHlCeXRlcwkAAZEAAAACCAUAAAACdHgAAAAGcHJvb2ZzAAAAAAAAAAABBQAAAAVwS2V5MQAAAAAAAAAAAQAAAAAAAAAAAAkAAGcAAAACCQAAZAAAAAIFAAAAC3BLZXkwU2lnbmVkBQAAAAtwS2V5MVNpZ25lZAAAAAAAAAAAAhE4uF8=
+  + return
+  ```
+  {
+  "script": "{
+     let pKey0 = base58'9LWfF7zhuDC7prC7xGGusygrzDFe6JsuEs3Mp22zBQ4B';
+    {
+        let pKey1 =   base58'7kfJvEMLxPxn7je8GtUtjQqGonaNAmESWVvpLy6VLS2t';
+        {
+            let pKey0Signed =
+                {
+                    if (
+                        sigVerify(tx.bodyBytes, getElement(tx.proofs, 0), pKey0)
+                    )
+                    then
+                        1
+                    else
+                        0
+                };
+            {
+                let pKey1Signed =
+                    {
+                        if (
+                            sigVerify(tx.bodyBytes, getElement(tx.proofs, 1), pKey1)
+                        )
+                        then
+                            1
+                        else
+                            0
+                    };
+                ((pKey0Signed + pKey1Signed) >= 2)
+            }
+        }
+    }
+}"  
+```
