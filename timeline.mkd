@@ -5,7 +5,7 @@ Question
 
 ## 11 March 2019 - 17 March 2019
 
-11 March
+### 11 March
 1. repo <https://github.com/j0k/data2waves>
 2. get WAVES on TESTNET <http://testnet.wavesexplorer.com/faucet>
 3. multisignature trx <http://testnet.wavesexplorer.com/tx/2RmduSXxCia9F8M8Ls1C3nBA968dB1XwHP5uoTPpTxhE>
@@ -19,7 +19,7 @@ Question
   5:30 change JSON
 
 
-12 March
+### 12 March
 1. repo <https://github.com/j0k/waves_understanding>
 2. #tofix <https://blog.wavesplatform.com/the-hitchhikers-guide-to-waves-smart-contracts-part-2-44621fd5a007>
    check lot of links like:
@@ -70,3 +70,8 @@ Question
     }
 }"  
 ```
+9. Fine Code: <https://medium.com/@ikardanov/create-your-first-crypto-trading-bot-390e3f9037e1>
+
+### 13 March
+1. script and transaction <https://docs.wavesplatform.com/en/waves-client/advanced_features/script_transaction.html>
+2. arch v0.1 <https://github.com/j0k/data2waves/blob/master/docs/arch_v0.1.mkd>
