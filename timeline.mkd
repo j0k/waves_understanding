@@ -75,3 +75,26 @@ Question
 ### 13 March
 1. script and transaction <https://docs.wavesplatform.com/en/waves-client/advanced_features/script_transaction.html>
 2. arch v0.1 <https://github.com/j0k/data2waves/blob/master/docs/arch_v0.1.mkd>
+
+
+### 18 March
+1. waves-transaction 2 webpack bundle.js
+2. npm install -g ts-node
+3. npm install
+4. npm run build
+5. webpack.conf.json
+
+### 20 March
+1. https://github.com/wavesplatform/waves-c/
+2. https://github.com/wavesplatform/waves-c/blob/master/src/crypto/waves_crypto.c
+3. we have libs for encrypt-decrypt inside waves-signatures (find it) and waves-keeper (AES)
+4. https://github.com/wavesplatform/waves-signature-generator/
+5. https://github.com/bachan/coda/blob/master/coda/cache.tcc
+6. https://github.com/chainify/waveskeeper/commit/e739f3187eef00954178021f7f0e68734ddddc4c
+
+### 25 March
+1. free text
+2. http://book.pythontips.com/en/latest/python_c_extension.html
+3. https://gist.github.com/syedrakib/241b68f5aeaefd7ef8e2
+4. https://stackoverflow.com/questions/11016078/is-it-possible-to-create-a-function-dynamically-during-runtime-in-c
+5. https://docs.wavesplatform.com/en/waves-environment/waves-protocol/data-structures.html#section-884d9804999fc47a3c2694e49ad2536a
