@@ -95,6 +95,13 @@ Question
 ### 25 March
 1. free text
 2. http://book.pythontips.com/en/latest/python_c_extension.html
-3. https://gist.github.com/syedrakib/241b68f5aeaefd7ef8e2
+3. RSA_example.py https://gist.github.com/syedrakib/241b68f5aeaefd7ef8e2
 4. https://stackoverflow.com/questions/11016078/is-it-possible-to-create-a-function-dynamically-during-runtime-in-c
 5. https://docs.wavesplatform.com/en/waves-environment/waves-protocol/data-structures.html#section-884d9804999fc47a3c2694e49ad2536a
+6. https://github.com/wavesplatform/waves-c/blob/master/src/crypto/waves_crypto.c
+
+### 12 April Smartcontracts
+1. Smart-contact orig docs - https://docs.wavesplatform.com/en/smart-contracts/video-tutorials-and-articles.html
+2. Waves IDE - https://ide.wavesplatform.com/
+3. https://docs.wavesplatform.com/en/smart-contracts/ride4dapps/overview.html
+4. https://cdn.rawgit.com/wavesplatform/waves-documentation/master/en/doc.html
