@@ -104,4 +104,7 @@ Question
 1. Smart-contact orig docs - https://docs.wavesplatform.com/en/smart-contracts/video-tutorials-and-articles.html
 2. Waves IDE - https://ide.wavesplatform.com/
 3. https://docs.wavesplatform.com/en/smart-contracts/ride4dapps/overview.html
-4. https://cdn.rawgit.com/wavesplatform/waves-documentation/master/en/doc.html
+4. (?all) function with types: https://cdn.rawgit.com/wavesplatform/waves-documentation/master/en/doc.html
+5. internal https://wavesplatform.atlassian.net/wiki/spaces/MAIN/pages/823197754/Smart+Contract
+6. internal https://wavesplatform.atlassian.net/wiki/spaces/MAIN/pages/1153892391/RIDE+4+DAPPS
+7. Some RIDE examples: https://github.com/wavesplatform/ride-examples
