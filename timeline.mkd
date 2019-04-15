@@ -136,3 +136,115 @@ lse ScriptResult(
 ### 15 April
 
 1. https://docs.wavesplatform.com/en/smart-contracts/ride-language/standard-library.html
+2. тратиться ли вычисления если false
+3.
+
+```
+@Callable(i)
+func addOwner(addrAddOwner: String) = {    
+    let myAddr = toBase58String(this)
+    let addrCallerOwner = toBase58String(i.caller.bytes) + "_owner"
+    let keyQueryOwner = addrAddOwner + "_owner"
+
+    let ownerExist = match getInteger(this, keyQueryOwner){
+        case a:Int => 1
+        case _ => 0
+    }
+
+    if (myAddr == addrCallerOwner) and (!ownerExist)
+        WriteSet([DataEntry(keyQueryOwner, 1)])    
+}
+
+```
+
+```
+{-# STDLIB_VERSION 3 #-}
+{-# CONTENT_TYPE DAPP #-}
+{-# SCRIPT_TYPE ACCOUNT #-}
+
+```
+
+```
+let myAddr = toBase58String(this)
+
+this.bytes.toBase58String()
+```
+
+
+```
+
+@Callable(i)
+func addOwner(addrAddOwner: String) = {    
+    let myAddr = this.bytes.toBase58String()
+    let addrCallerOwner = toBase58String(i.caller.bytes) + "_owner"
+    let keyQueryOwner = addrAddOwner + "_owner"
+
+    let ownerExist = match getInteger(this, keyQueryOwner){
+        case a:Int => 1
+        case _ => 0
+    }
+
+    if (myAddr == addrCallerOwner) then (
+        WriteSet([DataEntry(keyQueryOwner, 1)])
+    ) else (true)
+}
+```
+
+
+```
+@Callable(i)
+func addOwner(addrAddOwner: String) = {    
+    let myAddr = this.bytes.toBase58String()
+    let addrCallerOwner = toBase58String(i.caller.bytes) + "_owner"
+    let keyQueryOwner = addrAddOwner + "_owner"
+
+    let ownerExist = match getInteger(this, keyQueryOwner){
+        case a:Int => 1
+        case _ => 0
+    }
+
+    if (myAddr == addrCallerOwner) then (
+        WriteSet([DataEntry(keyQueryOwner, 1)])
+    ) else throw("Nothing to do")
+}
+
+seed = patrol random prepare script diet scissors demise pole ancient shrimp desert glimpse
+```
+
+need to do verify
+```
+@Callable(i)
+func addOwner(addrAddOwner: String) = {    
+    let myAddr = this.bytes.toBase58String()
+    let addrCallerOwner = toBase58String(i.caller.bytes) + "_owner"
+    let keyQueryOwner = addrAddOwner + "_owner"
+
+    let ownerExist = match getInteger(this, keyQueryOwner){
+        case a:Int => 1
+        case _ => 0
+    }
+
+    if (myAddr == addrCallerOwner) then (
+        WriteSet([DataEntry(keyQueryOwner, 1)])
+    ) else throw("Nothing to do")
+}
+
+@Verifier(txx)
+func verify() = {
+    true
+}
+```
+
+```
+deploy(compile(env.file()))
+```
+
+```
+prefixOwner
+not
+prefix_owner
+```
+
+see https://wavesexplorer.com/testnet/address/3MrJcvDviHvAXJrEEi45Gpj88VgduRVem8V
+
+4. https://docs.wavesplatform.com/en/waves-api-and-sdk/waves-node-rest-api/example-transactions.html
