@@ -108,3 +108,31 @@ Question
 5. internal https://wavesplatform.atlassian.net/wiki/spaces/MAIN/pages/823197754/Smart+Contract
 6. internal https://wavesplatform.atlassian.net/wiki/spaces/MAIN/pages/1153892391/RIDE+4+DAPPS
 7. Some RIDE examples: https://github.com/wavesplatform/ride-examples
+
+
+### 14 April
+1. https://www.youtube.com/watch?v=k7gK7FgUFiU
+```
+
+@Callable(i)
+
+@Verifier(txx)
+
+Script and Data associated with account
+
+no automatic triggers
+
+state machine
+1:22
+
+lse ScriptResult(
+                    WriteSet([
+                        DataEntry(xxxStartupFund, newAmount)
+                        ]),
+                    TransferSet([ScriptTransfer(i.caller, amount, unit)])
+                )
+```
+
+### 15 April
+
+1. https://docs.wavesplatform.com/en/smart-contracts/ride-language/standard-library.html
