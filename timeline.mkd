@@ -248,3 +248,28 @@ prefix_owner
 see https://wavesexplorer.com/testnet/address/3MrJcvDviHvAXJrEEi45Gpj88VgduRVem8V
 
 4. https://docs.wavesplatform.com/en/waves-api-and-sdk/waves-node-rest-api/example-transactions.html
+
+```
+@Callable(i)
+func transfer(amount: Int, toAddr: String) = {
+    let addrCaller = toBase58String(i.caller.bytes)
+
+    if (amount < 0)
+        then throw("Can't withdraw negative amount")
+    else (
+        if (fWithMod(prefixOwner,addrCaller) || fWithMod(prefixUser,addrCaller)) then
+            TransferSet([ScriptTransfer(Address(fromBase58String(toAddr)), amount, unit)])
+        else throw("You don't have privileges to make transfers.")
+    )
+}
+```
+
+```100000000```
+
+```broadcast(invokeScript({dappAddress: address(env.accounts[1]), call:{function:"transfer",args:[{type:"integer", value:100000000},{type:"string", value: address(env.accounts[0])}]}, payment: {}))```
+
+  broadcast(invokeScript({dappAddress: address(env.accounts[1]), call:{function:"deposit",args:[]}, payment: [{amount: 100000000, asset:null }]}))
+
+broadcast(
+  invokeScript({dappAddress: address(env.accounts[1]),
+    call:{function:"transfer", args:[{type:"integer", value:100000000},{type:"string", value: address(env.accounts[0])}], payment: []}}))
