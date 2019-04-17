@@ -273,3 +273,40 @@ func transfer(amount: Int, toAddr: String) = {
 broadcast(
   invokeScript({dappAddress: address(env.accounts[1]),
     call:{function:"transfer", args:[{type:"integer", value:100000000},{type:"string", value: address(env.accounts[0])}], payment: []}}))
+
+```
+
+# 16 April
+
+1. delete script - https://www.youtube.com/watch?v=gBgLjg6nrvA&amp=&feature=youtu.be
+const deleteScript = SetScript({script: null, senderPublicKey:publicKey()})
+
+```
+does there is a difference between:
+this.bytes.toBase58String()
+toBase58String(this.bytes)
+```
+
+replace
+
+`func addU(mod:String, addr:String) {`
+with
+`func addU(mod:String, addr:String) = {`
+
+2. web client testnet https://testnet.wavesplatform.com/
+3. web client testnet issue tokens https://testnet.wavesplatform.com/tokens
+4. decompile scripts https://testnode2.wavesnodes.com/api-docs/index.html#!/utils/decompile_1
+
+
+5.
+```
+Issuer         : 3Mq8aY2AjUCxYJuR8nGCzBkusL94HM4wVb3
+ID             : 34UsbiY6CK67wXKvGkTPZnMdyvk43bnn7VS7CyXk1efU
+Name           : TEST SMART
+Total amount   : 1,000,000
+Decimal points : 3
+Type           : Reissuable
+Issue date     : 16.04.2019 16:16
+```
+
+1.
