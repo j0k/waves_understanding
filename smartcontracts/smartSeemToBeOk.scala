@@ -91,6 +91,7 @@ func addU(mod:String, addr:String) = addU3(i.caller, mod,addr)
 @Verifier(tx)
 func verify() = {
     let creator    = this.bytes.toBase58String()
+    
 
     match(tx) {
         case transferTx: TransferTransaction =>
