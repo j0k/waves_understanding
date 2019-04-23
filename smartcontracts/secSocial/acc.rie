@@ -1,0 +1,56 @@
+{-# STDLIB_VERSION 3 #-}
+{-# CONTENT_TYPE DAPP #-}
+{-# SCRIPT_TYPE ACCOUNT #-}
+
+let ZEROBYTE = 0.toBytes()
+
+func checkOne(key:String, mod:String, pubKey:ByteVector) = {
+    match getBinary(this, mod+key) {
+        case pk:ByteVector => pk == pubKey
+        case _             => false
+    }
+}
+
+func checkOneExist(key:String, mod:String) = {
+    match getBinary(this, mod+key) {
+        case pk:ByteVector => pk != ZEROBYTE
+        case _             => false
+    }
+}
+
+# can return position
+func check(mod:String, pubKey:ByteVector) = {
+    if checkOne("1", mod, pubKey) then 1
+    else if checkOne("2", mod, pubKey) then 2
+    else if checkOne("3", mod, pubKey) then 3
+    else 0
+}
+
+func getFreePosition(mod:String) = {
+    if !checkOneExist("1", mod)
+    then 1
+    else if !checkOneExist("2", mod)
+    then 2
+    else if !checkOneExist("3", mod)
+    then 3
+    else 0
+}
+
+func remUser(mod:String, pubKey:ByteVector) = {
+    let pos = check(mod, pubKey)
+    if (pos > 0) then WriteSet([DataEntry(mod+pos.toString(), 0)])
+    else throw("no user")
+}
+
+func addUser(mod:String, pubKey:ByteVector) = {
+    let pos = getFreePosition(mod)
+    if (pos > 0) then WriteSet([DataEntry(mod+pos.toString(), pubKey)])
+    else throw("no user")
+}
+
+
+@Callable(i)
+func addUserCall(mod:String, pubKey:ByteVector) = addUser(mod, pubKey)
+
+@Callable(i)
+func remUserCall(mod:String, pubKey:ByteVector) = remUser(mod, pubKey)
