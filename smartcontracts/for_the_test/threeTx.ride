@@ -1,0 +1,9 @@
+let check = sigVerify(tx.bodyBytes, tx.proofs[0], tx.senderPublicKey)
+
+
+match tx {
+    case tx:TransferTransaction  => check
+    case tx:SetScriptTransaction => check
+    case tx:DataTransaction      => check
+    case _ => false
+}

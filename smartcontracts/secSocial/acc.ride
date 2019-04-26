@@ -38,7 +38,7 @@ func getFreePosition(mod:String) = {
 
 func remUser(mod:String, pubKey:ByteVector) = {
     let pos = check(mod, pubKey)
-    if (pos > 0) then WriteSet([DataEntry(mod+pos.toString(), 0)])
+    if (pos > 0) then WriteSet([DataEntry(mod+pos.toString(), ZEROBYTE)])
     else throw("no user")
 }
 
@@ -54,3 +54,37 @@ func addUserCall(mod:String, pubKey:ByteVector) = addUser(mod, pubKey)
 
 @Callable(i)
 func remUserCall(mod:String, pubKey:ByteVector) = remUser(mod, pubKey)
+
+# wid0 делает дружескую транзакцию в пользу wid5 — даёт монеток, в аттачмене пишет WELCOME
+#
+# потерия денег на комиссии
+
+@Callable(i)
+func welcome(mod:String, msg:String, amount:Int) = {
+    let accAddr = this.bytes
+
+
+    #
+    # https://docs.wavesplatform.com/en/ride/built-in-structures.html#TransferTransaction
+    #
+    # feeAssetId	OPTION[ByteVector]
+    # amount	Int
+    # assetId	OPTION[ByteVector]
+    # recipient	Address Alias
+    # attachment	ByteVector
+    # id	ByteVector
+    # fee	Int
+    # timestamp	Int
+    # version	Int
+    # sender	Address
+    # senderPublicKey	ByteVector
+    # bodyBytes	ByteVector
+    # proofs	LIST[ByteVector]
+    #
+    # 
+    #
+
+    TransferSet([ScriptTransfer(this, amount, unit)])
+
+
+}

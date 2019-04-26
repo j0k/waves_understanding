@@ -611,4 +611,48 @@ func verify() = {
 2. https://github.com/wavesplatform/waves-transactions
 3. https://github.com/wavesplatform/waves-transactions/blob/master/usage/invoke-script.ts
 4. https://docs.wavesplatform.com/en/ride/built-in-functions.html#Int
-5. 
+
+## 24 April
+
+1. let userState = getInteger(extract(WhitelistAddr), toBase58String(tx.sender.bytes));
+2. работа со строками
+3.
+```
+let key = toBase58String(tx.sender.bytes) + "_WAVES";
+let minAmount = getInteger(extract(WhitelistAddr), key)
+if isDefined(minAmount) then
+```
+4. https://docs.wavesplatform.com/en/ride/effective-ride-examples.html
+
+## 25 April
+
+1. смартконтракт порождает а) WriteSet, б) TransferSet и ничего более.
+
+a) WriteSet - изменение своего стейта с помощью изменения своих данных
+b) TransferSet - изменение балансов в формате [ScriptTransfer(addr, amount, unit)] -
+
+т.е. аккаунт не может делать классические аттачменты к транзакциям , но может в себя дописывать данные [key -> value] по этим аттачментам
+
+2. https://wavesplatform.com/files/docs/white_paper_waves_smart_contracts.pdf
+3. about ByteVector
+```
+let list = [0, 1, 2]
+let listBytes = toBytes(list[0]) + toBytes(list[1]) + toBytes(list[2])
+```
+
+4. arch:
+
+
+listen every 1 sec for transaction:
+keep dict [block => set(transactions)]
+write 2 kafka all new transaction
+
+two channels:
+1. one for confirmed
+2. one for unconfirmed
+3. are forks are possible? right
+
+## 26 April
+
+1. https://docs.wavesplatform.com/en/waves-full-node/api-limitations-of-the-pool-of-public-nodes.html
+2. https://docs.wavesplatform.com/en/waves-oracles/what-is-a-data-oracle.html
