@@ -1,0 +1,21 @@
+{-# STDLIB_VERSION 3 #-}
+{-# CONTENT_TYPE DAPP #-}
+{-# SCRIPT_TYPE ACCOUNT #-}
+
+#let guideAddr = base58'3NBZK8e9t6pumsVKMqA7AE84ChaxtP2YGy5'
+
+
+@Verifier(tx)
+func verify() = {
+    let guideAddr = base58'3NBZK8e9t6pumsVKMqA7AE84ChaxtP2YGy5'
+
+    match (tx) {
+        case transTx:TransferTransaction => {
+            let v = getInteger(Address(guideAddr), toBase58String(tx.senderPublicKey))
+            isDefined(v) && extract(v)>0
+        }
+
+        case _ => sigVerify(tx.bodyBytes, tx.proofs[0], tx.senderPublicKey)
+    }
+
+}
