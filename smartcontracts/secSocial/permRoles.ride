@@ -1,0 +1,238 @@
+{-# STDLIB_VERSION 3 #-}
+{-# CONTENT_TYPE DAPP #-}
+{-# SCRIPT_TYPE ACCOUNT #-}
+
+let ZEROBYTE = 0.toBytes()
+let opADD = 1
+let opREM = 2
+
+let prProtector = "_protector_"
+let prOwner     = "_owner_"
+
+func checkOne(key:String, mod:String, pubKey:ByteVector) = {
+    match getBinary(this, mod+key) {
+        case pk:ByteVector => pk == pubKey
+        case _             => false
+    }
+}
+
+func checkOneExist(key:String, mod:String) = {
+    match getBinary(this, mod+key) {
+        case pk:ByteVector => pk != ZEROBYTE
+        case _             => false
+    }
+}
+
+# can return position
+func check(mod:String, pubKey:ByteVector) = {
+    if checkOne("1", mod, pubKey) then 1
+    else if checkOne("2", mod, pubKey) then 2
+    else if checkOne("3", mod, pubKey) then 3
+    else 0
+}
+
+func checkAnyExist(mod:String) = {
+    if checkOneExist("1", mod) then 1
+    else if checkOneExist("2", mod) then 2
+    else if checkOneExist("3", mod) then 3
+    else 0
+}
+
+
+func getFreePosition(mod:String) = {
+    if !checkOneExist("1", mod)
+    then 1
+    else if !checkOneExist("2", mod)
+    then 2
+    else if !checkOneExist("3", mod)
+    then 3
+    else 0
+}
+
+# ================================
+
+func strInDB(key:String) = {
+    match getBinary(this, key){
+        case a:ByteVector => a!=ZEROBYTE
+        case _     => false
+    }
+}
+
+func signedBy(tx:Transaction, key:String, i:Int) = {
+    if strInDB(key) then (
+        let pubKey = getBinary(this, key)
+        let signed = match pubKey {
+            case a: ByteVector => sigVerify(tx.bodyBytes, tx.proofs[i], a)
+            case _ => false
+        }
+        signed
+    ) else false
+}
+
+func checkSignature(tx:Transaction, mod:String, i:Int) = {
+    signedBy(tx, mod+"1", i) || signedBy(tx, mod+"2", i) || signedBy(tx, mod+"3", i)
+}
+
+# =================================
+
+func remUser(mod:String, pubKey:ByteVector) = {
+    let pos = check(mod, pubKey)
+    if (pos > 0) then WriteSet([DataEntry(mod+pos.toString(), ZEROBYTE)])
+    else throw("no user")
+}
+
+func addUser(mod:String, pubKey:ByteVector) = {
+    let pos = getFreePosition(mod)
+    if (pos > 0) then WriteSet([DataEntry(mod+pos.toString(), pubKey)])
+    else throw("no space")
+}
+
+func changeUser(mod:String, pubKey:ByteVector, op:Int) = {
+    if op == opADD then
+        addUser(mod, pubKey)
+    else
+        remUser(mod, pubKey)
+}
+
+##
+func getOnlyBoolean(addr:Address, v:String) = {
+    match getBoolean(this, v) {
+        case a:Boolean => a
+        case _         => false
+    }
+}
+
+func checkGatePermission(mod: String, pubKey:ByteVector) = {
+    let uniqGate = match getBinary(this, mod + toBase58String(pubKey)) {
+            case bv:ByteVector => getOnlyBoolean(Address(bv), toBase58String(pubKey))
+            case _        => false
+        }
+
+    # _cg_ - common gate
+    let commonGate = if !uniqGate then match getBinary(this, mod + "cg_") {
+        case bv:ByteVector => getOnlyBoolean(Address(bv), toBase58String(pubKey))
+        case _             => false
+    } else false
+
+    commonGate || uniqGate
+}
+
+func checkStorePermission(mod: String, pubKey:ByteVector) = {check(mod,pubKey)>0}
+
+func checkPermission(mod: String, pubKey:ByteVector) = {
+    let allowByGate  = false
+    let allowByStore = false
+
+    let gateAddr = true
+
+    let gateOn  = getOnlyBoolean(this, mod + "gateOn")
+    let storeOn = getOnlyBoolean(this, mod + "storeOn")
+
+    let gatePerm  = if gateOn  then checkGatePermission(mod, pubKey)  else false
+    let storePerm = if storeOn then checkStorePermission(mod, pubKey) else false
+
+    gatePerm || storePerm
+}
+
+func checkRoleAndAdd(mod1:String, pubKey1:ByteVector, mod2: String, pubKey2:ByteVector) = {
+    if check(mod1,pubKey1)>0 then addUser(mod2, pubKey2) else throw(toBase58String(pubKey1) + "have no permission to add " + mod2)
+}
+
+@Callable(i)
+func setProtector(pubKey:ByteVector) = checkRoleAndAdd(prOwner, i.callerPublicKey, prProtector, pubKey)
+
+# proof[0] - protector signature
+# proof[1] - owner (also it is caller) signature
+# @Callable(i)
+# func unsetProtector(pubKeyOwner:ByteVector, pubKe) = {
+#    if check("_owner_", i.callerPublicKey)>0 then addUser("_protector_", pubKey) else addUser("_protector_", pubKey)
+# }
+
+
+# // setProtector	unsetProtector	setGuide
+# with roles and rights
+# common format
+#
+# func addRole(caller:ByteVector, pubKey:ByteVector, mod:String) = {
+# }
+
+#func addOwner(callerPK:ByteVector, PK:ByteVector) = {
+#    if check("owner_", callerPK) > 0 then {
+#        addUser("owner_", PK)
+#    } else false
+#}
+
+#func remOwner(callerPK:ByteVector, PK:ByteVector) = {
+#    if check("owner_", callerPK) > 0 then {
+#        remUser("owner_", PK)
+#    } else false
+#}
+
+#func changeOwner(callerPK:ByteVector, PK:ByteVector, op:Int) = {
+#    if check("owner_", callerPK) > 0 then changeUser("owner_", PK, op) else throw("caller have no such privilegies")
+#}
+
+#func changeProtectr(callerPK:ByteVector, PK:ByteVector, op:Int) = {
+#    if check("owner_", callerPK) > 0 && op==opADD then changeUser("protector_", PK, op) else throw("caller have no such privilegies")
+#}
+
+#
+# GUIDE LOGIC
+#
+# foreach transfer users check:
+#  "guide_1" -> addr1,
+#  "guide_2" -> addr2
+# can = getInteger(addr1, pubKey)
+# if check(priv, caller) && can > 0 :
+#   OK! you have all rights
+
+
+@Callable(i)
+func addUserCall(mod:String, pubKey:ByteVector) = addUser(mod, pubKey)
+
+@Callable(i)
+func remUserCall(mod:String, pubKey:ByteVector) = remUser(mod, pubKey)
+
+# wid0 делает дружескую транзакцию в пользу wid5 — даёт монеток, в аттачмене пишет WELCOME
+#
+# потерия денег на комиссии
+
+# https://docs.wavesplatform.com/en/ride/built-in-structures.html#TransferTransaction
+
+@Callable(i)
+func initOwnership() = {
+    WriteSet([DataEntry("firstLaunch", i.callerPublicKey)])
+}
+
+@Verifier(tx)
+func verify() = {
+    match tx {
+        case invTx:InvokeScriptTransaction => {
+            let nLaunch = match getInteger(this, "firstLaunch"){
+                case a:Int => a
+                case _ => 0
+            }
+
+            if (nLaunch == 0) then {
+                if this == addressFromPublicKey(tx.senderPublicKey)
+                    then true
+                else
+                    false
+            } else {
+                let protector = checkAnyExist(prProtector)
+
+                let protectorSigned = if protector > 0
+                    then checkSignature(invTx, prProtector, 0)
+                    else true
+
+                let ownerSigner = if check(prOwner, tx.senderPublicKey) > 0
+                    then sigVerify(tx.bodyBytes, tx.proofs[1], tx.senderPublicKey)
+                    else false
+
+                if protector>0 then protectorSigned && ownerSigner else ownerSigner
+            }
+        }
+
+        case _ => this == addressFromPublicKey(tx.senderPublicKey)
+    }
+}
