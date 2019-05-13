@@ -8,7 +8,9 @@ let opREM = 2
 
 let prProtector = "_protector_"
 let prOwner     = "_owner_"
-let prTransfer  = "_transfer_"
+let prUser      = "_transfer_"
+let prSafeUser  = "_safeuser_"
+let prTrader    = "_trader_"
 
 func checkOne(key:String, mod:String, pubKey:ByteVector) = {
     match getBinary(this, mod+key) {
@@ -146,27 +148,65 @@ func setProtector(pubKey:ByteVector) = checkRoleAndAdd(prOwner, i.callerPublicKe
 func addUserCall(mod:String, pubKeyS:String) = addUser(mod, fromBase58String(pubKeyS))
 
 @Callable(i)
-func remUserCall(mod:String, pubKeyS:String) = remUser(mod, fromBase58String(pubKeyS))
+func addUserCallTest(mod:String, pubKeyS:String, test:String) = addUser(mod, fromBase58String(pubKeyS))
 
+@Callable(i)
+func remUserCall(mod:String, pubKeyS:String) = remUser(mod, fromBase58String(pubKeyS))
 
 @Callable(i)
 func initOwnership() = {
-    WriteSet([DataEntry("firstLaunch", 1), DataEntry(prOwner+1.toString(), i.callerPublicKey)])
+    if this == addressFromPublicKey(i.callerPublicKey) then {
+        let nLaunch = match getInteger(this, "firstLaunch"){
+                case a:Int => a
+                case _ => 0
+            }
+
+        if (nLaunch == 0) then
+            WriteSet([DataEntry("firstLaunch", 1), DataEntry(prOwner+1.toString(), i.callerPublicKey)])
+        else
+            throw("Contract has been already initialized.")
+    }
+    else
+        throw("Only creater can init first owner.")
 }
 
 @Callable(i)
 func transferCall(addr:String, amount:Int, assetId:String) = {
-    if check(prTransfer, i.callerPublicKey) > 0 || check(prOwner, i.callerPublicKey) > 0 then
-        TransferSet([ScriptTransfer(Address(fromBase58String(addr)), amount, unit )])
+    let asset = if assetId == ""
+    then unit
+    else fromBase58String(assetId)
+
+
+    if check(prUser, i.callerPublicKey) > 0 || check(prOwner, i.callerPublicKey) > 0 then
+        TransferSet([ScriptTransfer(Address(fromBase58String(addr)), amount, asset )])
     else throw("No permissions")
+
 }
-
-
 
 @Verifier(tx)
 func verify() = {
     match tx {
-        case invTx:InvokeScriptTransaction => false
+        case invTx:InvokeScriptTransaction => {
+                let protector = checkAnyExist(prProtector)
+
+                let protectorSigned = if protector > 0
+                    then checkSignature(invTx, prProtector, 0)
+                    else true
+
+                let ownerSigner = if check(prOwner, tx.senderPublicKey) > 0
+                    then sigVerify(tx.bodyBytes, tx.proofs[0], tx.senderPublicKey)
+                    else false
+
+
+                if invTx.function == "addUserCall" || invTx.function == "remUserCall" then {
+                    if protector>0 then protectorSigned && ownerSigner else ownerSigner
+                }
+                else if invTx.function == "transfer" then {
+                    check(prUser, tx.senderPublicKey) > 0
+                }
+                else false
+            }
+
 
         case _ => this == addressFromPublicKey(tx.senderPublicKey)
     }

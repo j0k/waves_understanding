@@ -40,7 +40,7 @@ describe('Wallet test suite', () => {
 			dApp: A[0]["addr"],
 			call: {
 				function:"addUserCall",
-				args:[{type:"string", value:"_transfer_"}, {type:"string", value:A[1]["pub"]}]
+				args:[{type:"string", value:"_user_"}, {type:"string", value:A[1]["pub"]}]
 			},
 			fee: 900000
 		}
@@ -49,6 +49,20 @@ describe('Wallet test suite', () => {
         await waitForTx(ttx.id)
     })
 
+
+    it ('InvokeTx: addUserCallTest', async function(){
+		const params = {
+			dApp: A[0]["addr"],
+			call: {
+				function:"addUserCallTest",
+				args:[{type:"string", value:"_TEST_"}, {type:"string", value:A[1]["pub"]}, {type:"string", value:"123"}]
+			},
+			fee: 900000
+		}
+        const ttx = invokeScript(params, A[0]["seed"])
+        await broadcast(ttx)
+        await waitForTx(ttx.id)
+    })
 
     it ('InvokeTx: transfer()', async function(){
 		const params = {
