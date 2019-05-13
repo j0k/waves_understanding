@@ -657,3 +657,7 @@ two channels:
 1. https://docs.wavesplatform.com/en/waves-full-node/api-limitations-of-the-pool-of-public-nodes.html
 2. https://docs.wavesplatform.com/en/waves-oracles/what-is-a-data-oracle.html
 3. https://testnodes.wavesnodes.com/api-docs/index.html#!/transactions/info_2
+
+## 13 May
+
+1. https://github.com/wavesplatform/Waves/blob/master/node/src/main/scala/com/wavesplatform/account/AddressOrAlias.scala
