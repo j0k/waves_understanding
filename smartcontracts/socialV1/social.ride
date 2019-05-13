@@ -8,6 +8,7 @@ let opREM = 2
 
 let prProtector = "_protector_"
 let prOwner     = "_owner_"
+let prTransfer  = "_transfer_"
 
 func checkOne(key:String, mod:String, pubKey:ByteVector) = {
     match getBinary(this, mod+key) {
@@ -141,98 +142,31 @@ func checkRoleAndAdd(mod1:String, pubKey1:ByteVector, mod2: String, pubKey2:Byte
 @Callable(i)
 func setProtector(pubKey:ByteVector) = checkRoleAndAdd(prOwner, i.callerPublicKey, prProtector, pubKey)
 
-# proof[0] - protector signature
-# proof[1] - owner (also it is caller) signature
-# @Callable(i)
-# func unsetProtector(pubKeyOwner:ByteVector, pubKe) = {
-#    if check("_owner_", i.callerPublicKey)>0 then addUser("_protector_", pubKey) else addUser("_protector_", pubKey)
-# }
-
-
-# // setProtector	unsetProtector	setGuide
-# with roles and rights
-# common format
-#
-# func addRole(caller:ByteVector, pubKey:ByteVector, mod:String) = {
-# }
-
-#func addOwner(callerPK:ByteVector, PK:ByteVector) = {
-#    if check("owner_", callerPK) > 0 then {
-#        addUser("owner_", PK)
-#    } else false
-#}
-
-#func remOwner(callerPK:ByteVector, PK:ByteVector) = {
-#    if check("owner_", callerPK) > 0 then {
-#        remUser("owner_", PK)
-#    } else false
-#}
-
-#func changeOwner(callerPK:ByteVector, PK:ByteVector, op:Int) = {
-#    if check("owner_", callerPK) > 0 then changeUser("owner_", PK, op) else throw("caller have no such privilegies")
-#}
-
-#func changeProtectr(callerPK:ByteVector, PK:ByteVector, op:Int) = {
-#    if check("owner_", callerPK) > 0 && op==opADD then changeUser("protector_", PK, op) else throw("caller have no such privilegies")
-#}
-
-#
-# GUIDE LOGIC
-#
-# foreach transfer users check:
-#  "guide_1" -> addr1,
-#  "guide_2" -> addr2
-# can = getInteger(addr1, pubKey)
-# if check(priv, caller) && can > 0 :
-#   OK! you have all rights
-
+@Callable(i)
+func addUserCall(mod:String, pubKeyS:String) = addUser(mod, fromBase58String(pubKeyS))
 
 @Callable(i)
-func addUserCall(mod:String, pubKey:ByteVector) = addUser(mod, pubKey)
+func remUserCall(mod:String, pubKeyS:String) = remUser(mod, fromBase58String(pubKeyS))
 
-@Callable(i)
-func remUserCall(mod:String, pubKey:ByteVector) = remUser(mod, pubKey)
-
-# wid0 делает дружескую транзакцию в пользу wid5 — даёт монеток, в аттачмене пишет WELCOME
-#
-# потерия денег на комиссии
-
-# https://docs.wavesplatform.com/en/ride/built-in-structures.html#TransferTransaction
 
 @Callable(i)
 func initOwnership() = {
     WriteSet([DataEntry("firstLaunch", 1), DataEntry(prOwner+1.toString(), i.callerPublicKey)])
 }
 
+@Callable(i)
+func transferCall(addr:String, amount:Int, assetId:String) = {
+    if check(prTransfer, i.callerPublicKey) > 0 || check(prOwner, i.callerPublicKey) > 0 then
+        TransferSet([ScriptTransfer(Address(fromBase58String(addr)), amount, unit )])
+    else throw("No permissions")
+}
+
+
+
 @Verifier(tx)
 func verify() = {
     match tx {
-        case invTx:InvokeScriptTransaction => {
-            # check if we invoke script for the first time
-            let nLaunch = match getInteger(this, "firstLaunch"){
-                case a:Int => a
-                case _ => 0
-            }
-
-            if (nLaunch == 0) then {
-                if this == addressFromPublicKey(tx.senderPublicKey)
-                    then true
-                else
-                    false
-            } else {
-                let protector = checkAnyExist(prProtector)
-
-                let protectorSigned = if protector > 0
-                    then checkSignature(invTx, prProtector, 0)
-                    else true
-
-                let ownerSigner = if check(prOwner, tx.senderPublicKey) > 0
-                    then sigVerify(tx.bodyBytes, tx.proofs[1], tx.senderPublicKey)
-                    else false
-
-                if protector>0 then protectorSigned && ownerSigner else ownerSigner
-            }
-        }
+        case invTx:InvokeScriptTransaction => false
 
         case _ => this == addressFromPublicKey(tx.senderPublicKey)
     }
