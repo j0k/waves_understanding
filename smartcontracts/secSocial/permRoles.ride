@@ -201,13 +201,14 @@ func remUserCall(mod:String, pubKey:ByteVector) = remUser(mod, pubKey)
 
 @Callable(i)
 func initOwnership() = {
-    WriteSet([DataEntry("firstLaunch", i.callerPublicKey)])
+    WriteSet([DataEntry("firstLaunch", 1), DataEntry(prOwner+1.toString(), i.callerPublicKey)])
 }
 
 @Verifier(tx)
 func verify() = {
     match tx {
         case invTx:InvokeScriptTransaction => {
+            # check if we invoke script for the first time
             let nLaunch = match getInteger(this, "firstLaunch"){
                 case a:Int => a
                 case _ => 0

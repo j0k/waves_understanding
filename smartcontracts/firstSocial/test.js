@@ -163,7 +163,7 @@ describe('Wallet test suite', () => {
         await waitForTx(ttx.id)
     })
 
-    it ('wid0 делегирует право тратить wid2', async function(){      
+    it ('wid0 делегирует право тратить wid2', async function(){
 		    true
     })
 

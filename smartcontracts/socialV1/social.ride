@@ -2,15 +2,26 @@
 {-# CONTENT_TYPE DAPP #-}
 {-# SCRIPT_TYPE ACCOUNT #-}
 
+let WSNVERSION = 1
 let ZEROBYTE = 0.toBytes()
 let opADD = 1
 let opREM = 2
 
-let prProtector = "_protector_"
-let prOwner     = "_owner_"
-let prUser      = "_transfer_"
-let prSafeUser  = "_safeuser_"
-let prTrader    = "_trader_"
+let prProtector      = "_protector_"
+let prOwner          = "_owner_"
+let prUser           = "_user_"
+let prSafeUser       = "_safeuser_"
+let prTrader         = "_trader_"
+
+let prUniqGate       = "_ug_"
+let prCommonGate     = "_cg_"
+
+let prGateOn         = "_gateOn_"
+let prStoreOn        = "_storeOn_"
+
+#let prGateUniqOn     = "_gUniqOn_"
+#let prGateCommonOn   = "_gCommonOn_"
+
 
 func checkOne(key:String, mod:String, pubKey:ByteVector) = {
     match getBinary(this, mod+key) {
@@ -99,25 +110,32 @@ func changeUser(mod:String, pubKey:ByteVector, op:Int) = {
 
 ##
 func getOnlyBoolean(addr:Address, v:String) = {
-    match getBoolean(this, v) {
+    match getBoolean(addr, v) {
         case a:Boolean => a
         case _         => false
     }
 }
 
 func checkGatePermission(mod: String, pubKey:ByteVector) = {
-    let uniqGate = match getBinary(this, mod + toBase58String(pubKey)) {
-            case bv:ByteVector => getOnlyBoolean(Address(bv), toBase58String(pubKey))
-            case _        => false
-        }
+    let uniqGate = match getString(this, mod + "_ug_" + toBase58String(pubKey)) {
+        case gateAddr:String => if (gateAddr != "") then
+            {
+                getOnlyBoolean(extract(addressFromString(gateAddr)), mod + toBase58String(pubKey))
+            } else false
+        case _               => false
+    }
 
     # _cg_ - common gate
-    let commonGate = if !uniqGate then match getBinary(this, mod + "cg_") {
-        case bv:ByteVector => getOnlyBoolean(Address(bv), toBase58String(pubKey))
-        case _             => false
+    let commonGate = if !uniqGate then match getString(this, mod + prCommonGate) {
+        case gateAddr:String => if gateAddr != "" then getOnlyBoolean(Address(fromBase58String(gateAddr)), mod+toBase58String(pubKey)) else false
+        case _               => false
     } else false
 
-    commonGate || uniqGate
+    #let val = getOnlyBoolean(Address(fromBase58String(extract(getString(this, mod + prCommonGate)) )), mod+toBase58String(pubKey))
+    #let cg = if commonGate then 1 else if uniqGate then 2 else 0
+
+    #throw("hi debug!" + cg.toString() + val.toString())
+    if commonGate then 1 else if uniqGate then 2 else 0
 }
 
 func checkStorePermission(mod: String, pubKey:ByteVector) = {check(mod,pubKey)>0}
@@ -128,17 +146,49 @@ func checkPermission(mod: String, pubKey:ByteVector) = {
 
     let gateAddr = true
 
-    let gateOn  = getOnlyBoolean(this, mod + "gateOn")
-    let storeOn = getOnlyBoolean(this, mod + "storeOn")
+    let gateOn  = getOnlyBoolean(this, mod + prGateOn)
+    let storeOn = getOnlyBoolean(this, mod + prStoreOn)
 
-    let gatePerm  = if gateOn  then checkGatePermission(mod, pubKey)  else false
+    let gatePerm  = if gateOn  then checkGatePermission(mod, pubKey)  else 0
     let storePerm = if storeOn then checkStorePermission(mod, pubKey) else false
 
-    gatePerm || storePerm
+    if storePerm
+    then 1
+    else if (gatePerm > 0)
+        then gatePerm + 1
+        else 0
+
+    # 0 - No perm
+    # 1 - store perm
+    # 2 - common gate perm
+    # 3 - uniq gate perm
 }
 
 func checkRoleAndAdd(mod1:String, pubKey1:ByteVector, mod2: String, pubKey2:ByteVector) = {
     if check(mod1,pubKey1)>0 then addUser(mod2, pubKey2) else throw(toBase58String(pubKey1) + "have no permission to add " + mod2)
+}
+
+#
+
+@Callable(i)
+func addUniqGate(mod:String, gateAddr:String, pubKey:String) = {
+    if checkPermission(prProtector, i.callerPublicKey) > 0 || checkPermission(prOwner, i.callerPublicKey) > 0
+        then WriteSet([DataEntry(mod+prUniqGate+pubKey, gateAddr )])
+        else throw("no rights")
+}
+
+@Callable(i)
+func addCommonGate(mod:String, gateAddr:String) = {
+    let chPr  = checkPermission(prProtector, i.callerPublicKey)
+    let chOwn = checkPermission(prOwner, i.callerPublicKey)
+    if checkPermission(prProtector, i.callerPublicKey) > 0 || checkPermission(prOwner, i.callerPublicKey) > 0
+        then WriteSet([DataEntry(mod+prCommonGate, gateAddr )])
+        else throw("no rights"+chOwn.toString() + chPr.toString())
+}
+
+@Callable(i)
+func setStoring(mod:String, store:String) = {
+    WriteSet([DataEntry(mod+store, true )])
 }
 
 @Callable(i)
@@ -162,7 +212,7 @@ func initOwnership() = {
             }
 
         if (nLaunch == 0) then
-            WriteSet([DataEntry("firstLaunch", 1), DataEntry(prOwner+1.toString(), i.callerPublicKey)])
+            WriteSet([DataEntry("firstLaunch", 1), DataEntry(prOwner+1.toString(), i.callerPublicKey), DataEntry(prOwner+prStoreOn, true)])
         else
             throw("Contract has been already initialized.")
     }
@@ -176,11 +226,31 @@ func transferCall(addr:String, amount:Int, assetId:String) = {
     then unit
     else fromBase58String(assetId)
 
+    let permUser = checkPermission(prUser, i.callerPublicKey)
+    let permOwn  = checkPermission(prOwner, i.callerPublicKey)
+    if (permUser > 0) || (permOwn > 0)
+        then TransferSet([ScriptTransfer(Address(fromBase58String(addr)), amount, asset )])
+        else throw("No permissions"+permUser.toString() +permOwn.toString())
+}
 
-    if check(prUser, i.callerPublicKey) > 0 || check(prOwner, i.callerPublicKey) > 0 then
-        TransferSet([ScriptTransfer(Address(fromBase58String(addr)), amount, asset )])
-    else throw("No permissions")
 
+@Callable(i)
+func dbgCheckAddrKey(addr:String, key:String) = {
+    let val = getOnlyBoolean(Address(fromBase58String(addr)), key)
+    throw("val: " + val.toString())
+}
+
+
+@Callable(i)
+func dbgCheckOnCommonGateway(mod:String) = {
+    let pubKey = i.callerPublicKey
+    let commonGate = match getString(this, mod + prCommonGate) {
+        case gateAddr:String => if gateAddr != "" then getOnlyBoolean(Address(fromBase58String(gateAddr)), mod+toBase58String(pubKey)) else false
+        case _               => false
+    }
+
+    let n = commonGate
+    throw("res: " + n.toString())
 }
 
 @Verifier(tx)
@@ -198,13 +268,14 @@ func verify() = {
                     else false
 
 
-                if invTx.function == "addUserCall" || invTx.function == "remUserCall" then {
-                    if protector>0 then protectorSigned && ownerSigner else ownerSigner
-                }
-                else if invTx.function == "transfer" then {
-                    check(prUser, tx.senderPublicKey) > 0
-                }
-                else false
+                #if invTx.function == "addUserCall" || invTx.function == "remUserCall" then {
+                #    if protector>0 then protectorSigned && ownerSigner else ownerSigner
+                #}
+                #else if invTx.function == "transfer" then {
+                #    check(prUser, tx.senderPublicKey) > 0
+                #}
+                #else false
+                true
             }
 
 

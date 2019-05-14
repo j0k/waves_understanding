@@ -661,3 +661,8 @@ two channels:
 ## 13 May
 
 1. https://github.com/wavesplatform/Waves/blob/master/node/src/main/scala/com/wavesplatform/account/AddressOrAlias.scala
+2. there is no big logic to use handler of InvokeScript inside @Verifier
+
+
+## 14 May
+1. No bit-logic operations
