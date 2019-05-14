@@ -666,3 +666,5 @@ two channels:
 
 ## 14 May
 1. No bit-logic operations
+2. smart assets can accept expressions for inside computations
+3. be very careful with smartcontract writing & deploying
