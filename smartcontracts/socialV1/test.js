@@ -20,13 +20,35 @@ describe('Wallet test suite', () => {
         await waitForTx(ttx.id)
     })
 
-    it ('InvokeTx: initOwnership', async function(){
+    it('deploys2 dapp script', async function(){
+        const ttx1 = setScript({ script: compile(file("social.ride")), fee:2000000}, A[0]["seed"])
+        var ttx = signTx(ttx1, A[0]["seed"])
+        await broadcast(ttx)
+        await waitForTx(ttx.id)
+    })
 
+
+    it ('InvokeTx: initOwnership', async function(){
 		const params = {
 			dApp: A[0]["addr"],
 			call: {
 				function:"initOwnership",
 				args:[{type:"string", value:"transfer_"}]
+			},
+			fee: 900000
+		}
+        const ttx = invokeScript(params, A[0]["seed"])
+        await broadcast(ttx)
+        await waitForTx(ttx.id)
+    })
+
+    // func manageOwners(pubKey:String, op:String)
+    it ('InvokeTx: add owner acc 2', async function(){
+		const params = {
+			dApp: A[0]["addr"],
+			call: {
+				function:"manageOwners",
+				args:[{type:"string", value:A[1]["pub"]}, {type:"string", value:"add"}]
 			},
 			fee: 900000
 		}

@@ -22,6 +22,7 @@ let prStoreOn        = "_storeOn_"
 #let prGateUniqOn     = "_gUniqOn_"
 #let prGateCommonOn   = "_gCommonOn_"
 
+func to01(v:Boolean) = if v then 1 else 0
 
 func checkOne(key:String, mod:String, pubKey:ByteVector) = {
     match getBinary(this, mod+key) {
@@ -96,7 +97,12 @@ func remUser(mod:String, pubKey:ByteVector) = {
 }
 
 func addUser(mod:String, pubKey:ByteVector) = {
+    let posCheck = check(mod, pubKey)
     let pos = getFreePosition(mod)
+
+    if posCheck > 0
+    then throw("Already exist")
+    else
     if (pos > 0) then WriteSet([DataEntry(mod+pos.toString(), pubKey)])
     else throw("no space")
 }
@@ -168,7 +174,27 @@ func checkRoleAndAdd(mod1:String, pubKey1:ByteVector, mod2: String, pubKey2:Byte
     if check(mod1,pubKey1)>0 then addUser(mod2, pubKey2) else throw(toBase58String(pubKey1) + "have no permission to add " + mod2)
 }
 
+func changeRole(mod:String, pubKey:String, op:String) = {
+    if op == "add"
+    then addUser(mod, fromBase58String(pubKey))
+    else if op == "rem"
+    then remUser(mod, fromBase58String(pubKey))
+    else throw("Unknown operation. Support only add/rem.")
+}
+
+
+# 0 - pubKey - of new Owner
+# 1 - op - "add"/"rem"
+# 2 -
 #
+#
+@Callable(i)
+func manageOwners(pubKey:String, op:String) = {
+    if check(prOwner, i.callerPublicKey) > 0
+    then changeRole(prOwner, pubKey, op)
+    else throw("no permissions")
+
+}
 
 @Callable(i)
 func addUniqGate(mod:String, gateAddr:String, pubKey:String) = {
@@ -197,11 +223,14 @@ func setProtector(pubKey:ByteVector) = checkRoleAndAdd(prOwner, i.callerPublicKe
 @Callable(i)
 func addUserCall(mod:String, pubKeyS:String) = addUser(mod, fromBase58String(pubKeyS))
 
-@Callable(i)
-func addUserCallTest(mod:String, pubKeyS:String, test:String) = addUser(mod, fromBase58String(pubKeyS))
+# @Callable(i)
+# func addUserCallTest(mod:String, pubKeyS:String, test:String) = addUser(mod, fromBase58String(pubKeyS))
 
 @Callable(i)
 func remUserCall(mod:String, pubKeyS:String) = remUser(mod, fromBase58String(pubKeyS))
+
+
+
 
 @Callable(i)
 func initOwnership() = {
@@ -278,6 +307,21 @@ func verify() = {
                 true
             }
 
+        case scriptTx:SetScriptTransaction => {
+            # 0 - proof of protector
+            # 1 - proof of owner
+            let protector = checkAnyExist(prProtector)
+
+            let protectorSigned = if protector > 0
+                then checkSignature(scriptTx, prProtector, 0)
+                else true
+
+            let ownerSigner = if check(prOwner, tx.senderPublicKey) > 0
+                then sigVerify(tx.bodyBytes, tx.proofs[ to01(protector>0) ], tx.senderPublicKey)
+                else false
+
+            ownerSigner && protectorSigned
+        }
 
         case _ => this == addressFromPublicKey(tx.senderPublicKey)
     }
